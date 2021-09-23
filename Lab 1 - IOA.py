@@ -35,8 +35,8 @@ rangoX = int(tryInput("Por favor ingrese los margenes del grafico a visualizar (
 
 
 # Parametros iniciales #########
-x_vals = np.linspace(0, rangoX, rangoX*300)     # 120 valores entre 0 y 4
-r1 = ((c1-x1*x_vals)/y1)                        # restricciones
+x_vals = np.linspace(0, rangoX, rangoX*300)      
+r1 = ((c1-x1*x_vals)/y1)                        
 r2 = ((c2-x2*x_vals)/y2) 
 r3 = ((c3-x3*x_vals)/y3) 
 yOBJ = (-x0*x_vals/y0)          # funcion objetivo, trazada con altura 0
