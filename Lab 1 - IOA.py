@@ -3,42 +3,76 @@ import matplotlib.pyplot as plt
 from scipy import optimize
 
 
-'''
-def f(x,y):
-    return (0.3*x + 0.52*y)
-
-f(x,y) = 0,3x + 0,52y -> y= -0.3x/0.52
-restricciones:
-X>=0
-Y >= 0
-2,5x+y >= 3         ->  y = 3-2,5x
-x+2y >=4            ->  y = (4-x)/2
-
-
-def objetivo(y3, yOBJ, minmax): #y3 curva maxima/minima, yOBJ=f objetivo, minmax = busca maximizar(1) o minimizar(0)
-    puntos = y3[0]
-    pendiente = y3[0]-y3[1]
-
-    for index in range(len(y3)):
-        if y3[index]-y3[index+1] != pendiente:
-            puntos.append(y3[index])
-            pendiente = y3[index]-y3[index+1]
+def tryInput(string):
+    while(True):
+        valor = float(input(string))
+        if(isinstance(valor, float)):
+            return valor
+        else:
+            print("Error, ingrese un valor numerico")
     
-    puntos.append(y3[-1])
+#funcion que recibe valores de usuario
+print("Ingrese coeficientes para X e Y: f(x,y)= [ ]X + [ ]Y")
+x0 = float(tryInput("Coeficiente de X: "))
+y0 = float(tryInput("Coeficiente de Y: "))
 
-    puntoOBJ=0
-    for punto in puntos:
-    
-'''
+print("Ingrese coeficientes para la restricción 1: [ ]X + [ ]Y <= [ ]")
+x1 = float(tryInput("Coeficiente de X: "))
+y1 = float(tryInput("Coeficiente de Y: "))
+c1 = float(tryInput("Coeficiente C: "))
 
-print("Resultados:")
+print("Ingrese coeficientes para la restricción 2: [ ]X + [ ]Y <= [ ]")
+x2 = float(tryInput("Coeficiente de X: "))
+y2 = float(tryInput("Coeficiente de Y: "))
+c2 = float(tryInput("Coeficiente C: "))
+
+print("Ingrese coeficientes para la restricción 3: [ ]X + [ ]Y <= [ ]")
+x3 = float(tryInput("Coeficiente de X: "))
+y3 = float(tryInput("Coeficiente de Y: "))
+c3 = float(tryInput("Coeficiente C: "))
+
+rangoX = int(tryInput("Por favor ingrese los margenes del grafico a visualizar (maximo valor de X e Y): "))
+
+
+# Parametros iniciales #########
+x_vals = np.linspace(0, rangoX, rangoX*300)     # 120 valores entre 0 y 4
+r1 = ((c1-x1*x_vals)/y1)                        # restricciones
+r2 = ((c2-x2*x_vals)/y2) 
+r3 = ((c3-x3*x_vals)/y3) 
+yOBJ = (-x0*x_vals/y0)          # funcion objetivo, trazada con altura 0
+################################
+
+
+# Curvas de nivel ##############
+fig=plt.figure(figsize=(10,8))      # crea la figura
+
+ax = fig.add_subplot(111)
+
+a = b = np.linspace(0, rangoX, 1000)
+X,Y = np.meshgrid(a,b)
+Z=x0*X + y0*Y    
+cs = ax.contour(X,Y,Z,100, alpha=0.4)   
+################################
+
+
+# Etiquetas Restricciones ######
+plt.plot(x_vals, r1, label=r'Restricción 1')    # 2,5x+y >= 3   etiquetas
+plt.plot(x_vals, r2, label=r'Restricción 2')     # x+2y >=4 
+plt.plot(x_vals, r3, label=r'Restricción 3')     # x+2y >=4 
+
+y3 = np.minimum(r1, r2)         #se define la curva minima entre r1 e r2
+y3 = np.minimum(y3, r3)         #se define la curva minima entre y3 e r3
+################################
+
+
+# Función objetivo #############
     
 def objetivo(y3, yOBJ): # esta función encuentra el conjunto de soluciones optimas y retorna el mejor resultado
     punto = 0           
-    diff = 4
+    diff = 0
 
     for index in range(len(y3)):            # busca el punto con menor diferencia entre las restricciones
-        if y3[index]-yOBJ[index]<diff:      # y la pendiente de la funcion objetivo (cuando esta es trazada con
+        if y3[index]-yOBJ[index]>diff:      # y la pendiente de la funcion objetivo (cuando esta es trazada con
             diff = y3[index]-yOBJ[index]    # altura (Y) 0=
             punto = y3[index]-yOBJ[index]
             x = index
@@ -47,46 +81,35 @@ def objetivo(y3, yOBJ): # esta función encuentra el conjunto de soluciones opti
     return (punto,x,y)  # "punto" corresponde a la altura (Y) que se debe ajustar la función objetivo para que
                         # visiblemente pase por la solución optima
 
-
-x_vals = np.linspace(0, 4, 1200)    # 120 valores entre 0 y 4
-y1 = (3-2.5*x_vals)                 # restricciones
-y2 = ((4-x_vals)/2) 
-yOBJ = (-0.3*x_vals/0.52)           # funcion objetivo, trazada con altura 0
-
-fig=plt.figure(figsize=(10,8))      # crea la figura
-
-ax = fig.add_subplot(111)
-
-a = b = np.linspace(0, 4, 1000)
-X,Y = np.meshgrid(a,b)
-Z=0.3*X + 0.52*Y    
-cs = ax.contour(X,Y,Z,100, alpha=0.4)   # dibuja las curvas de nivel
-
-
-plt.plot(x_vals, y1, label=r'$3 \leq 2,5x + y$')    # 2,5x+y >= 3   etiquetas
-plt.plot(x_vals, y2, label=r'$4 \leq x + 2y $')     # x+2y >=4 
-
-
-y3 = np.maximum(y1, y2)        #se define la curva maxima entre y1 e y2
-
 offset, x, y = objetivo(y3, yOBJ)
+yOBJ[0:]+= offset           # se ajusta la funcion objetivo para que pase por la solucion optima
 
-yOBJ[0:]+= offset
-
-plt.plot(x_vals, yOBJ, label=r'$f(x,y) = 0.3x + 0.52y  $') #  Función objetivo
-
-
-plt.plot(x_vals[x], y, 'b*', markersize=15) #marca del punto optimo de minimización
+plt.plot(x_vals, yOBJ, label=r'Función objetivo') 
+################################
 
 
-# Región factible
-plt.fill_between(x_vals, y3, 4, alpha=0.15, color='b')
-print("El espacio factible está delimitado por la zona marcada en azul")
+plt.plot(x_vals[x], y, 'b*', markersize=15) # marca (estrella) en el punto optimo de maximización
+
+
+# Región factible #############
+plt.fill_between(x_vals, 0, y3, alpha=0.15, color='b')
+###############################
+
+print("El espacio factible está delimitado por la zona pintada en azul") #•	Indique si el espacio factible es distinto de vacío (10)
+
+if ((y3[-1]-y3[-2]) > 0):  #se utiliza la pendiente en el ultimo punto de la curva minima para determinar si es abierto o cerrado
+    print("El area factible es abierto")    #debido a que todas las restricciones son "menor a", si la pendiente es positiva, es abierta
+else:                           
+    print("El area factible es cerrada")    #•	Indique si el espacio factible es cerrado o abierto(10)
+
+'''
+•	Mostrar gráficamente las curvas de nivel de la función objetivo (5)
+•	Mostrar gráficamente, el espacio factible (5)
+•	Identificar el conjunto de posibles soluciones del PPL (10)
+•	Identificar una solución optima del problema (10)
+'''
 
 plt.axis(ymin = 0)
-plt.title('Optimización lineal')
+plt.title('Laboratorio 1')
 plt.legend()
 plt.show()
-
-
-
